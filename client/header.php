@@ -2,7 +2,7 @@
     <div class="container-fluid">
         <a class="navbar-brand" href="/websites/RonsAcademy/">
             <img src="./assets/logo.png" alt="" width="30" height="30">
-            <span class="<?php echo isset($_SESSION['isUserAdmin']) ? 'text-danger' : 'text-primary'; ?> logo-text">Rounak's Academy</span>
+            <span class="<?php echo isset($_SESSION['isUserAdmin']) ? 'text-danger' : 'text-primary'; ?> logo-text">LearniFy</span>
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -41,7 +41,7 @@
                         </a>
 
                         <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                            <li><a class="dropdown-item" href="#">My Account</a></li>
+                            <li><a class="dropdown-item" href="?account=true">My Account</a></li>
                             <?php if (!isset($_SESSION['isUserAdmin'])): ?>
                                 <li><a class="dropdown-item" href="?adminlogin=true">Admin Login</a></li>
                             <?php endif; ?>

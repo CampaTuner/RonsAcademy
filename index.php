@@ -20,8 +20,11 @@
         include('./client/adminLogin.php');
     } else if (isset($_GET['create']) && isset($_SESSION['isUserAdmin'])) {
         include('./client/createCourse.php');
+    } else if (isset($_GET['details']) && isset($_SESSION['username'])) {
+        include('./client/details.php');
+    } else if (isset($_GET['account']) && isset($_SESSION['username'])) {
+        include('./client/account.php');
     } else {
-        
         include('./client/home.php');
     }
     ?>

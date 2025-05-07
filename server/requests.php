@@ -158,9 +158,9 @@ if (isset($_POST['register'])) {
     $description = ($_POST['description']);
     $thumbnail = $_FILES['thumbnail'];
 
-   
+
     $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-    $maxFileSize = 2 * 1024 * 1024; 
+    $maxFileSize = 2 * 1024 * 1024;
 
     if (!in_array($thumbnail["type"], $allowedTypes)) {
         $_SESSION['error'] = "Invalid file type! Only JPG, PNG, GIF, and WEBP allowed.";
@@ -196,4 +196,115 @@ if (isset($_POST['register'])) {
         header("location: /websites/RonsAcademy/?create=true");
         exit();
     }
+} // Handle account updates
+else if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    $userId = $_SESSION['user_id'] ?? null;
+    if (!$userId) {
+        $_SESSION['error'] = "Unauthorized access!";
+        header("Location: /websites/RonsAcademy/?login=true");
+        exit();
+    }
+
+    switch ($_POST['action']) {
+        case 'update_username':
+            $newUsername = test_input($_POST['new_username']);
+            if (empty($newUsername)) {
+                $_SESSION['error'] = "Username cannot be empty!";
+            } else {
+                $stmt = $conn->prepare("UPDATE users SET username = ? WHERE id = ?");
+                $stmt->bind_param("si", $newUsername, $userId);
+                if ($stmt->execute()) {
+                    $_SESSION['username'] = $newUsername;
+                    $_SESSION['success'] = "Username updated successfully!";
+                } else {
+                    $_SESSION['error'] = "Failed to update username!";
+                }
+            }
+            break;
+
+        case 'update_email':
+            $newEmail = test_input($_POST['new_email']);
+            if (!filter_var($newEmail, FILTER_VALIDATE_EMAIL)) {
+                $_SESSION['error'] = "Invalid email format!";
+            } else {
+                // Check for duplicate email
+                $checkStmt = $conn->prepare("SELECT id FROM users WHERE email = ? AND id != ?");
+                $checkStmt->bind_param("si", $newEmail, $userId);
+                $checkStmt->execute();
+                $checkStmt->store_result();
+                if ($checkStmt->num_rows > 0) {
+                    $_SESSION['error'] = "Email already in use!";
+                } else {
+                    $stmt = $conn->prepare("UPDATE users SET email = ? WHERE id = ?");
+                    $stmt->bind_param("si", $newEmail, $userId);
+                    if ($stmt->execute()) {
+                        $_SESSION['success'] = "Email updated successfully!";
+                    } else {
+                        $_SESSION['error'] = "Failed to update email!";
+                    }
+                }
+            }
+            break;
+
+        case 'update_password':
+            $currentPassword = test_input($_POST['current_password']);
+            $newPassword = test_input($_POST['new_password']);
+
+            if (empty($currentPassword) || empty($newPassword)) {
+                $_SESSION['error'] = "Both current and new password are required!";
+                break;
+            }
+
+            $stmt = $conn->prepare("SELECT password FROM users WHERE id = ?");
+            $stmt->bind_param("i", $userId);
+            $stmt->execute();
+            $stmt->bind_result($hashedPassword);
+            $stmt->fetch();
+
+        case 'update_password':
+            $currentPassword = $_POST['current_password'];
+            $newPassword = $_POST['new_password'];
+
+            $getStmt = $conn->prepare("SELECT password FROM users WHERE id = ?");
+            $getStmt->bind_param("i", $userId);
+            $getStmt->execute();
+            $getStmt->bind_result($hashedPassword);
+            $getStmt->fetch();
+            $getStmt->close();
+
+            if (!password_verify($currentPassword, $hashedPassword)) {
+                $_SESSION['error'] = "Current password is incorrect!";
+            } else {
+                $newHashed = password_hash($newPassword, PASSWORD_DEFAULT);
+                $updateStmt = $conn->prepare("UPDATE users SET password = ? WHERE id = ?");
+                $updateStmt->bind_param("si", $newHashed, $userId);
+                if ($updateStmt->execute()) {
+                    $_SESSION['success'] = "Password updated successfully!";
+                } else {
+                    $_SESSION['error'] = "Failed to update password!";
+                }
+                $updateStmt->close();
+            }
+            header("Location: ../?account=true");
+            exit();
+
+
+        case 'delete_account':
+            if (isset($stmt)) $stmt->close();
+            $stmt = $conn->prepare("DELETE FROM users WHERE id = ?");
+            $stmt->bind_param("i", $userId);
+            if ($stmt->execute()) {
+                session_destroy();
+                header("Location: /websites/RonsAcademy/?register=true");
+                exit();
+            } else {
+                $_SESSION['error'] = "Failed to delete account!";
+                header("Location: ../?account=true");
+                exit();
+            }
+            break;
+    }
+
+    header("Location: ../?account=true");
+    exit();
 }

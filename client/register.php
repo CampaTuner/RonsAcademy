@@ -35,7 +35,7 @@
 
         <div class="mb-3 form-check">
             <input type="checkbox" name="terms" class="form-check-input" id="exampleCheck1">
-            <label class="form-check-label" for="exampleCheck1">I agree to the <span class="text-primary">Rounak's Academy</span> Terms and Condition.</label>
+            <label class="form-check-label" for="exampleCheck1">I agree to the <span class="text-primary">LearniFy's</span> Terms and Condition.</label>
         </div>
 
 
